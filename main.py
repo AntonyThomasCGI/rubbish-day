@@ -4,12 +4,12 @@ import enum
 import os
 import time
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from bs4 import BeautifulSoup
 import dotenv
-import gpiozero
 import requests
+from RPi import GPIO
+from bs4 import BeautifulSoup
 
 
 dotenv.load_dotenv()
@@ -24,6 +24,7 @@ URL = (
 )
 
 BIN_COLLECTION_TIME = 7  # 7.00 AM
+REMIND_HOURS_BEFORE = 16
 
 GPIO_PIN_RED = 17
 GPIO_PIN_GREEN = 27
@@ -49,30 +50,27 @@ class LEDController:
     """LEDController provides methods for setting a 3-color LED bulb."""
 
     def __init__(self):
-        self.red_led = gpiozero.LED(GPIO_PIN_RED)
-        self.green_led = gpiozero.LED(GPIO_PIN_GREEN)
+        GPIO.setmode(GPIO.BCM)
+        GPIO.setup(GPIO_PIN_RED, GPIO.OUT)
+        GPIO.setup(GPIO_PIN_GREEN, GPIO.OUT)
     
-    def all_off(self):
-        self.red_led.off()
-        self.green_led.off()
+    def turn_off(self):
+        GPIO.output(GPIO_PIN_RED, GPIO.LOW)
+        GPIO.output(GPIO_PIN_GREEN, GPIO.LOW)
 
     def turn_red(self):
-        if not self.red_led.is_lit:
-            self.red_led.on()
-        if self.green_led.is_lit:
-            self.green_led.off()
+        GPIO.output(GPIO_PIN_RED, GPIO.HIGH)
+        GPIO.output(GPIO_PIN_GREEN, GPIO.LOW)
     
     def turn_green(self):
-        if self.red_led.is_lit:
-            self.red_led.off()
-        if not self.green_led.is_lit:
-            self.green_led.on()
+        print(GPIO_PIN_RED)
+        print(GPIO_PIN_GREEN)
+        GPIO.output(GPIO_PIN_RED, GPIO.LOW)
+        GPIO.output(GPIO_PIN_GREEN, GPIO.HIGH)
 
     def turn_orange(self):
-        if not self.red_led.is_lit:
-            self.red_led.on()
-        if not self.green_led.is_lit:
-            self.green_led.on()
+        GPIO.output(GPIO_PIN_RED, GPIO.HIGH)
+        GPIO.output(GPIO_PIN_GREEN, GPIO.HIGH)
 
 
 def parse_response(html: bytes) -> RubbishDay:
@@ -140,10 +138,18 @@ def query_rubbish_day() -> RubbishDay:
 def set_led_appropriately(rubbish_day: RubbishDay) -> bool:
     """Set LED light color based on bin type."""
     led_controller = LEDController()
+    led_controller.turn_off()
+
+    time_until_bin = rubbish_day.date - datetime.now()
+    if time_until_bin > timedelta(hours=REMIND_HOURS_BEFORE):
+        print('Bin day is still a way away')
+        return False
 
     if Bin.RECYCLING_BAG in rubbish_day.bins:
         led_controller.turn_red()
+        print('Take recycling bag out!')
     elif Bin.GLASS_CRATE in rubbish_day.bins:
+        print('Take glass crate out!')
         led_controller.turn_green()
     else:
         raise AssertionError("Unreachable")
@@ -158,8 +164,6 @@ def main() -> int:
 
     rubbish_day = query_rubbish_day()
     changed = set_led_appropriately(rubbish_day)
-
-    time.sleep(5)
 
     return 0 if changed else 1
 

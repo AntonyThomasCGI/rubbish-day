@@ -53,7 +53,7 @@ class LEDController:
         GPIO.setmode(GPIO.BCM)
         GPIO.setup(GPIO_PIN_RED, GPIO.OUT)
         GPIO.setup(GPIO_PIN_GREEN, GPIO.OUT)
-    
+
     def turn_off(self):
         GPIO.output(GPIO_PIN_RED, GPIO.LOW)
         GPIO.output(GPIO_PIN_GREEN, GPIO.LOW)
@@ -61,10 +61,8 @@ class LEDController:
     def turn_red(self):
         GPIO.output(GPIO_PIN_RED, GPIO.HIGH)
         GPIO.output(GPIO_PIN_GREEN, GPIO.LOW)
-    
+
     def turn_green(self):
-        print(GPIO_PIN_RED)
-        print(GPIO_PIN_GREEN)
         GPIO.output(GPIO_PIN_RED, GPIO.LOW)
         GPIO.output(GPIO_PIN_GREEN, GPIO.HIGH)
 

@@ -139,7 +139,7 @@ def set_led_appropriately(rubbish_day: RubbishDay) -> bool:
     led_controller.turn_off()
 
     time_until_bin = rubbish_day.date - datetime.now()
-    if time_until_bin > timedelta(hours=REMIND_HOURS_BEFORE):
+    if timedelta(hours=REMIND_HOURS_BEFORE) < time_until_bin or time_until_bin < timedelta(0):
         print('Bin day is still a way away')
         return False
 

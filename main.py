@@ -2,7 +2,6 @@
 
 import enum
 import os
-import time
 from dataclasses import dataclass
 from datetime import datetime, timedelta
 
@@ -122,8 +121,9 @@ def query_rubbish_day() -> RubbishDay:
 
     headers = {
         "Content-Length": "0",
-        "Content-Type": "application/json",
-        "Accept": "application/json, application/xml, */*",
+        "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+        "Accept": "text/html, */*; q=0.01",
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:148.0) Gecko/20100101 Firefox/148.0",
     }
 
     response = requests.post(URL, headers=headers, params=params)
